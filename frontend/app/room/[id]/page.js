@@ -10,8 +10,7 @@ import { useTheme } from '../../../lib/theme';
 
 const SUPPORTED_EMOJIS = ['👍', '❤️', '😂'];
 const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5000';
-const [pinnedMsg, setPinnedMsg] = useState(null);
-const { theme } = useTheme();
+
 
 function emptyReactions() {
   const result = {};
@@ -33,7 +32,7 @@ function normalizeReactions(rawByEmoji, currentUsername) {
 export default function RoomPage({ params }) {
   const { id: roomId } = params;
   const router = useRouter();
-
+  const { theme, toggleTheme } = useTheme();
   const [username, setUsername] = useState('');
   const [room, setRoom] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -44,6 +43,7 @@ export default function RoomPage({ params }) {
   const [replyingTo, setReplyingTo] = useState(null);
   const [editingMsg, setEditingMsg] = useState(null); // { id, text }
   const [mentionSuggestions, setMentionSuggestions] = useState([]);
+  const [pinnedMsg, setPinnedMsg] = useState(null);
 
   const socketRef = useRef(null);
   const messagesRef = useRef(null);
