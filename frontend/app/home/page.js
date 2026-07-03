@@ -5,15 +5,18 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { apiGet, apiPost, apiFetch } from '../../lib/api';
 import { colorForName } from '../../lib/colors';
+import { useTheme } from '../../lib/theme';
 
 export default function HomePage() {
   const router = useRouter();
+  const { theme, toggleTheme } = useTheme();
   const [username, setUsername] = useState('');
   const [rooms, setRooms] = useState([]);
   const [roomName, setRoomName] = useState('');
   const [description, setDescription] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [pinnedMsg, setPinnedMsg] = useState(null);
 
   useEffect(() => {
     apiGet('/me')
@@ -78,18 +81,22 @@ export default function HomePage() {
           <span className="nav-title">Campus Connect</span>
         </div>
         <div className="nav-right">
-          <span className="nav-user">
-            <svg className="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <button onClick={toggleTheme} className="btn btn-outline btn-sm" title="Toggle theme">
+         {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+          <Link href="/profile" className="btn btn-outline btn-sm">
+            <svg className="icon" width="14" height="14" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8" />
               <path d="M4 20c0-4 3.6-6 8-6s8 2 8 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
             </svg>
-            <span className="label-text">{username}</span>
-          </span>
+            {username}
+          </Link>
           <button onClick={handleLogout} className="btn btn-outline btn-sm">
-            <svg className="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg className="icon" width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
+
             Log out
           </button>
         </div>
@@ -163,6 +170,23 @@ export default function HomePage() {
                         {room.description && <div className="room-desc">{room.description}</div>}
                         <div className="room-meta">by {room.creator_username}</div>
                       </div>
+                      {pinnedMsg && (
+  <div className="pinned-banner">
+    <span className="pinned-icon">📌</span>
+    <div className="pinned-content">
+      <span className="pinned-label">Pinned by {room.creator_username}</span>
+      <span className="pinned-text">{pinnedMsg.text}</span>
+    </div>
+    {room.creator_username === username && (
+      <button
+        className="reply-banner-cancel"
+        onClick={() => socketRef.current.emit('unpin_message', { room_id: roomId, username })}
+      >
+        ✕
+      </button>
+    )}
+  </div>
+)}
                     </Link>
 
                     {room.creator_username === username && (

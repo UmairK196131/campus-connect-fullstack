@@ -1,7 +1,3 @@
-// Small fetch wrapper for talking to the Flask backend.
-// `credentials: 'include'` is required so the session cookie (set by
-// /api/login) is sent on every subsequent request.
-
 export async function apiFetch(path, options = {}) {
   const res = await fetch(`/api${path}`, {
     credentials: 'include',
@@ -24,4 +20,12 @@ export function apiGet(path) {
 
 export function apiPost(path, body) {
   return apiFetch(path, { method: 'POST', body: JSON.stringify(body) });
+}
+
+export function apiPut(path, body) {
+  return apiFetch(path, { method: 'PUT', body: JSON.stringify(body) });
+}
+
+export function apiDelete(path) {
+  return apiFetch(path, { method: 'DELETE' });
 }

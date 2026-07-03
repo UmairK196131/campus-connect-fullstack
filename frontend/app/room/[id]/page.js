@@ -6,9 +6,12 @@ import Link from 'next/link';
 import { io } from 'socket.io-client';
 import { apiGet, apiPost } from '../../../lib/api';
 import { colorForName } from '../../../lib/colors';
+import { useTheme } from '../../../lib/theme';
 
 const SUPPORTED_EMOJIS = ['👍', '❤️', '😂'];
 const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:5000';
+const [pinnedMsg, setPinnedMsg] = useState(null);
+const { theme } = useTheme();
 
 function emptyReactions() {
   const result = {};
@@ -87,6 +90,19 @@ export default function RoomPage({ params }) {
         socket.on('user_typing', (d) => {
           setTypingUsers((prev) => (prev.includes(d.username) ? prev : [...prev, d.username]));
         });
+
+        // Load existing pinned message
+apiGet(`/rooms/${roomId}/pinned`).then((d) => {
+  if (d.pinned) setPinnedMsg(d.pinned);
+});
+
+socket.on('message_pinned', (d) => {
+  setPinnedMsg({ text: d.text, username: d.username });
+});
+
+socket.on('message_unpinned', () => {
+  setPinnedMsg(null);
+});
 
         socket.on('user_stopped_typing', (d) => {
           setTypingUsers((prev) => prev.filter((u) => u !== d.username));
@@ -287,6 +303,9 @@ export default function RoomPage({ params }) {
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
+            <button onClick={toggleTheme} className="btn btn-outline btn-sm" title="Toggle theme">
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
             Log out
           </button>
         </div>
@@ -372,6 +391,21 @@ export default function RoomPage({ params }) {
                             <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
                         </button>
+                        {room.creator_username === username && (
+  <button
+    className={`pin-btn${msg.is_pinned ? ' pinned' : ''}`}
+    title={msg.is_pinned ? 'Unpin' : 'Pin message'}
+    onClick={() => {
+      if (msg.is_pinned) {
+        socketRef.current.emit('unpin_message', { room_id: roomId, username });
+      } else {
+        socketRef.current.emit('pin_message', { room_id: roomId, message_id: msg.id, username });
+      }
+    }}
+  >
+    📌
+  </button>
+)}
                       </>
                     )}
                   </div>

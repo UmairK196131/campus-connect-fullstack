@@ -1,4 +1,5 @@
 import './globals.css';
+import { ThemeProvider } from '../lib/theme';
 
 export const metadata = {
   title: 'Campus Connect',
@@ -15,7 +16,11 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
